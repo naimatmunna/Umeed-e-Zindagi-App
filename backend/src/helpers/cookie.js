@@ -3,20 +3,21 @@ import { COOKIE_NAMES } from '../constants/tokens.js';
 
 const SEVEN_DAYS = 7 * 24 * 60 * 60 * 1000;
 
+const refreshCookieOptions = () => ({
+  httpOnly: true,
+  secure: config.cookie.secure,
+  sameSite: config.cookie.sameSite,
+  maxAge: SEVEN_DAYS,
+  path: '/',
+});
+
+/** Refresh token is already a signed JWT — httpOnly cookie is sufficient. */
 export const setRefreshCookie = (res, token) => {
-  res.cookie(COOKIE_NAMES.REFRESH_TOKEN, token, {
-    httpOnly: true,
-    secure: config.cookie.secure,
-    sameSite: 'strict',
-    maxAge: SEVEN_DAYS,
-    path: '/',
-    signed: true,
-  });
+  res.cookie(COOKIE_NAMES.REFRESH_TOKEN, token, refreshCookieOptions());
 };
 
 export const clearRefreshCookie = (res) => {
-  res.clearCookie(COOKIE_NAMES.REFRESH_TOKEN, { path: '/' });
+  res.clearCookie(COOKIE_NAMES.REFRESH_TOKEN, refreshCookieOptions());
 };
 
-export const readRefreshCookie = (req) =>
-  req.signedCookies?.[COOKIE_NAMES.REFRESH_TOKEN] || req.cookies?.[COOKIE_NAMES.REFRESH_TOKEN];
+export const readRefreshCookie = (req) => req.cookies?.[COOKIE_NAMES.REFRESH_TOKEN];

@@ -24,8 +24,10 @@ const schema = z.object({
   JWT_ACCESS_EXPIRES_IN: z.string().default('15m'),
   JWT_REFRESH_EXPIRES_IN: z.string().default('7d'),
 
-  COOKIE_SECRET: z.string().min(16),
-  COOKIE_SECURE: boolStr.default('false'),
+  /** Optional — refresh cookies are unsigned JWTs in httpOnly cookies. */
+  COOKIE_SECRET: z.string().min(16).optional(),
+  COOKIE_SECURE: boolStr.optional(),
+  COOKIE_SAME_SITE: z.enum(['strict', 'lax', 'none']).optional(),
 
   CORS_ORIGINS: z.string().default('http://localhost:5173'),
 
@@ -56,8 +58,13 @@ if (!parsed.success) {
   process.exit(1);
 }
 
+const onHttps =
+  parsed.data.NODE_ENV === 'production' || Boolean(process.env.VERCEL);
+
 const env = Object.freeze({
   ...parsed.data,
+  COOKIE_SECURE: parsed.data.COOKIE_SECURE ?? onHttps,
+  COOKIE_SAME_SITE: parsed.data.COOKIE_SAME_SITE ?? (onHttps ? 'lax' : 'strict'),
   isProd: parsed.data.NODE_ENV === 'production',
   isDev: parsed.data.NODE_ENV === 'development',
   isTest: parsed.data.NODE_ENV === 'test',

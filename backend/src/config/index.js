@@ -23,7 +23,11 @@ const config = Object.freeze({
     refreshExpiresIn: env.JWT_REFRESH_EXPIRES_IN,
   },
 
-  cookie: { secret: env.COOKIE_SECRET, secure: env.COOKIE_SECURE },
+  cookie: {
+    secret: env.COOKIE_SECRET,
+    secure: env.COOKIE_SECURE,
+    sameSite: env.COOKIE_SAME_SITE,
+  },
 
   cors: { origins: env.corsOrigins },
 
