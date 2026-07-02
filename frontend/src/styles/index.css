@@ -1,0 +1,70 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+  --brand-primary: #1a6b47;
+  --brand-primary-dark: #124d32;
+  --brand-accent: #c41e3a;
+  --brand-surface: #f2f7f4;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  @apply bg-ios-bg font-sans text-ios-label antialiased;
+  font-feature-settings: 'kern' 1, 'liga' 1;
+}
+
+@layer components {
+  .ios-grouped {
+    @apply overflow-hidden rounded-ios-lg border border-ios-separator/50 bg-ios-card shadow-ios-card;
+  }
+
+  .ios-row {
+    @apply flex min-h-[44px] items-center justify-between border-b border-ios-separator/40 px-4 py-3 last:border-b-0;
+  }
+
+  .ios-section-title {
+    @apply mb-2 px-1 text-xs font-semibold uppercase tracking-wider text-ios-secondary;
+  }
+
+  .ios-page-title {
+    @apply font-display text-page-title text-ios-label;
+  }
+
+  .ios-page-subtitle {
+    @apply mt-1 text-[15px] leading-relaxed text-ios-secondary;
+  }
+
+  .ios-nav-link {
+    @apply flex min-h-[44px] items-center gap-3 rounded-ios px-3 py-2.5 text-[15px] font-medium text-ios-label transition-colors;
+  }
+
+  .ios-nav-link-active {
+    @apply bg-brand-forestLight font-semibold text-brand-forest;
+  }
+
+  .brand-page-header {
+    @apply mb-6 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between;
+  }
+
+  .brand-card {
+    @apply rounded-ios-lg border border-ios-separator/50 bg-ios-card shadow-ios-card;
+  }
+
+  .brand-filter-bar {
+    @apply brand-card p-4 sm:p-5;
+  }
+
+  .brand-table-wrap {
+    @apply brand-card overflow-hidden;
+  }
+}
