@@ -3,14 +3,19 @@ import path from 'node:path';
 import { nanoid } from 'nanoid';
 import config from '../config/index.js';
 import logger from '../utils/logger.js';
+import { isServerless } from '../utils/runtime.js';
 
 /**
  * File storage abstraction:
  * - Cloudinary when CLOUDINARY_URL is set.
- * - Local disk (./uploads) otherwise.
+ * - Local disk otherwise (./uploads locally, /tmp on serverless).
  * Both return { url, publicId } so callers are storage-agnostic.
  */
-const LOCAL_DIR = path.resolve('uploads');
+const LOCAL_DIR = isServerless()
+  ? path.join(process.env.TMPDIR || '/tmp', 'umeed-uploads')
+  : path.resolve('uploads');
+
+export const getLocalUploadDir = () => LOCAL_DIR;
 
 class LocalStorage {
   async init() {
@@ -50,7 +55,13 @@ let storage = new LocalStorage();
 export const initStorage = async () => {
   if (!config.cloudinary.enabled) {
     await storage.init();
-    logger.info('Storage: local disk (Cloudinary not configured)');
+    if (isServerless()) {
+      logger.warn(
+        'Storage: ephemeral /tmp disk on serverless — set CLOUDINARY_URL on Vercel for persistent uploads',
+      );
+    } else {
+      logger.info('Storage: local disk (Cloudinary not configured)');
+    }
     return storage;
   }
   try {

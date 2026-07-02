@@ -9,6 +9,7 @@ import hpp from 'hpp';
 import config from './config/index.js';
 import routes from './routes/index.js';
 import { mountSwagger } from './loaders/swagger.js';
+import { getLocalUploadDir } from './storage/index.js';
 import { requestId } from './middlewares/requestId.js';
 import { httpLogger } from './middlewares/httpLogger.js';
 import { apiLimiter } from './middlewares/rateLimiter.js';
@@ -42,7 +43,7 @@ export const createApp = () => {
   app.use(cookieParser(config.cookie.secret));
   app.use(compression());
   app.use(hpp());
-  app.use('/uploads', express.static(path.resolve('uploads')));
+  app.use('/uploads', express.static(getLocalUploadDir()));
   app.use(mongoSanitizer);
   app.use(xssClean);
 

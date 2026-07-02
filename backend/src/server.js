@@ -2,21 +2,42 @@ import http from 'node:http';
 import createApp from './app.js';
 import config from './config/index.js';
 import logger from './utils/logger.js';
+import { isServerless } from './utils/runtime.js';
 import { connectDatabase, disconnectDatabase } from './loaders/database.js';
 import { initCache, getRedisClient } from './cache/index.js';
 import { initQueue, closeQueue } from './queues/index.js';
 import { initStorage } from './storage/index.js';
 import { initSocket } from './loaders/socket.js';
 
-/**
- * Composition root. Initializes infrastructure (DB, cache, queue, storage,
- * sockets), starts the HTTP server, and wires graceful shutdown.
- */
-const start = async () => {
+let appPromise = null;
+
+const bootInfra = async () => {
   await connectDatabase();
   await initCache();
   await initQueue();
   await initStorage();
+};
+
+const getApp = async () => {
+  if (!appPromise) {
+    await bootInfra();
+    appPromise = Promise.resolve(createApp());
+  }
+  return appPromise;
+};
+
+/** Vercel / serverless entry — cached boot, no listen(). */
+export default async (req, res) => {
+  const app = await getApp();
+  app(req, res);
+};
+
+/**
+ * Composition root for local/traditional hosting. Initializes infrastructure,
+ * starts the HTTP server, and wires graceful shutdown.
+ */
+const start = async () => {
+  await bootInfra();
 
   const app = createApp();
   const server = http.createServer(app);
@@ -42,7 +63,6 @@ const start = async () => {
       }
     });
 
-    // Force-exit if cleanup hangs.
     setTimeout(() => {
       logger.error('Forced shutdown after timeout');
       process.exit(1);
@@ -63,7 +83,9 @@ const start = async () => {
   return server;
 };
 
-start().catch((err) => {
-  logger.error(`Fatal boot error: ${err.message}`, { stack: err.stack });
-  process.exit(1);
-});
+if (!isServerless()) {
+  start().catch((err) => {
+    logger.error(`Fatal boot error: ${err.message}`, { stack: err.stack });
+    process.exit(1);
+  });
+}
