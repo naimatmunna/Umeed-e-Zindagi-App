@@ -4,6 +4,10 @@ import config from '../config/index.js';
 
 const { combine, timestamp, printf, colorize, errors, json } = winston.format;
 
+// Serverless platforms (Vercel) have a read-only filesystem at runtime.
+// Writing log files (mkdir logs/) crashes the function with EROFS.
+const isServerless = Boolean(process.env.VERCEL) || Boolean(process.env.AWS_LAMBDA_FUNCTION_NAME);
+
 const devFormat = combine(
   colorize(),
   timestamp({ format: 'HH:mm:ss' }),
@@ -18,7 +22,8 @@ const prodFormat = combine(timestamp(), errors({ stack: true }), json());
 
 const transports = [new winston.transports.Console()];
 
-if (config.isProd) {
+// Only write rotated log files when the filesystem is writable (not serverless).
+if (config.isProd && !isServerless) {
   transports.push(
     new DailyRotateFile({
       dirname: 'logs',
